@@ -185,10 +185,40 @@ class Reparaciones extends BaseController
 
     public function crear()
     {
+
+        if ($this->request->getPost('btnCancelar')) {
+            $this->session->destroy();
+            return redirect()->to(site_url('reparaciones/crear'));
+        }
+
         $this->session->set('some_name', 'some_value');
         $data["vehiculos"] = $this->modelVehiculo->getData();
         $data["servicios"] = $this->modelServicio->getData();
         $data["contenido"] = 'reparacion/crear';
+
+        $data["vehiculoId"] = $this->request->getPost('vehiculo');
+        $data["fecha"] = $this->request->getPost('fecha');
+        $data["observacion"] = $this->request->getPost('observacion');
+        $data["servicioId"] = $this->request->getPost('servicio');
+        $data["cantidad"] = $this->request->getPost('cantidad');
+        $data["precio"] = $this->request->getPost('precio');
+        $data["detalles"] = $this->session->get('detalle') ? $this->session->get('detalle') : [];
+        if ($this->request->getPost('btnPrecio') || $this->request->getPost('btnAdd')) {
+            $servicio = $this->modelServicio->getData($data["servicioId"]);
+            $data["precio"] = (int) $data["cantidad"] * (int) $servicio['precio'];
+        }
+
+        if ($this->request->getPost('btnAdd')) {
+            $servicio = $this->modelServicio->getData($data["servicioId"]);
+            array_push($data["detalles"], array("id" => $data["servicioId"], "servicio" => $servicio["descripcion"], "precio" => $data["precio"], "cantidad" => $data["cantidad"]));
+            $this->session->set('detalle', $data["detalles"]);
+        }
+
+        $data["total"] = 0;
+        foreach ($data["detalles"] as $detalle) {
+            $data["total"] += $detalle["precio"];
+        }
+
         return view('welcome_message', $data);
     }
 }
