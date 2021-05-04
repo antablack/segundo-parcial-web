@@ -187,37 +187,12 @@ class Reparaciones extends BaseController
 
     public function crear()
     {
-        $detalles = $this->session->get('detalle') ? $this->session->get('detalle') : [];
-        if ($this->request->getPost('btnCancelar') || $this->request->getPost('btnEnviar')) {
-
-            if ($this->request->getPost('btnEnviar')) {
-                $total = 0;
-                foreach ($detalles as $detalle) {
-                    $total += $detalle["precio"];
-                }
-                $data = [
-                    "fecha" => $this->request->getPost('fecha'),
-                    "costo" => $total,
-                    "observacion" => $this->request->getPost('observacion'),
-                    "vehiculos_id" => $this->request->getPost('vehiculo')
-                ];
-                $reparacionId = $this->modelReparacion->insertar($data);
-                foreach ($detalles as $detalle) {
-                    $detalle = [
-                        "servicios_id" => $detalle['id'],
-                        "costo" => $detalle['precio'],
-                        "cantidad" => $detalle['cantidad'],
-                        "reparaciones_id" => $reparacionId
-                    ];
-                    $this->modelDetalle->insertar($detalle);
-                }
-            }
-
+        if ($this->request->getPost('btnCancelar')) {
             $this->session->destroy();
             return redirect()->to(site_url('reparaciones/crear'));
         }
 
-        $data["detalles"] = $detalles;
+        $data["detalles"] = $this->session->get('detalle') ? $this->session->get('detalle') : [];
         $data["vehiculos"] = $this->modelVehiculo->getData();
         $data["servicios"] = $this->modelServicio->getData();
         $data["contenido"] = 'reparacion/crear';
@@ -227,22 +202,59 @@ class Reparaciones extends BaseController
         $data["servicioId"] = $this->request->getPost('servicio');
         $data["cantidad"] = $this->request->getPost('cantidad');
         $data["precio"] = $this->request->getPost('precio');
-        
 
-        if ($this->request->getPost('btnPrecio') || $this->request->getPost('btnAdd')) {
+
+        if (($this->request->getPost('btnPrecio') || $this->request->getPost('btnAdd')) && (string) $data["servicioId"] != '') {
             $servicio = $this->modelServicio->getData($data["servicioId"]);
             $data["precio"] = (int) $data["cantidad"] * (int) $servicio['precio'];
         }
 
-        if ($this->request->getPost('btnAdd')) {
+        if ($this->request->getPost('btnAdd') && (string) $data["servicioId"] != '') {
             $servicio = $this->modelServicio->getData($data["servicioId"]);
             array_push($data["detalles"], array("id" => $data["servicioId"], "servicio" => $servicio["descripcion"], "precio" => $data["precio"], "cantidad" => $data["cantidad"]));
             $this->session->set('detalle', $data["detalles"]);
+            $data["servicioId"] = '';
+            $data["precio"] = '';
+            $data["cantidad"] = '';
         }
 
         $data["total"] = 0;
         foreach ($data["detalles"] as $detalle) {
-            $data["total"] += $detalle["precio"];
+            $data["total"] += (int) $detalle["precio"];
+        }
+
+        $data["error"] = '';
+        if ($this->request->getPost('btnEnviar')) {
+            if ((string) $data["vehiculoId"] == '') $data["error"] = 'Selecciona un vehiculo';
+            if ($data["error"] != '') return view('welcome_message', $data);
+            if ((string) $data["fecha"] == '') $data["error"] = 'Agrega una fecha';
+            if ($data["error"] != '') return view('welcome_message', $data);
+            if ((string) $data["observacion"] == '') $data["error"] = 'Agrega una observacion';
+            if ($data["error"] != '') return view('welcome_message', $data);
+            if (count($data["detalles"]) == 0) $data["error"] = 'Agrega un detalle';
+            if ($data["error"] != '') return view('welcome_message', $data);
+            //return view('welcome_message', $data);
+
+            $data = [
+                "fecha" => $this->request->getPost('fecha'),
+                "costo" => $data["total"],
+                "observacion" => $this->request->getPost('observacion'),
+                "vehiculos_id" => $this->request->getPost('vehiculo')
+            ];
+            $detalles = $this->session->get('detalle') ? $this->session->get('detalle') : [];
+            $reparacionId = $this->modelReparacion->insertar($data);
+            foreach ($detalles as $detalle) {
+                $detalle = [
+                    "servicios_id" => $detalle['id'],
+                    "costo" => $detalle['precio'],
+                    "cantidad" => $detalle['cantidad'],
+                    "reparaciones_id" => $reparacionId
+                ];
+                $this->modelDetalle->insertar($detalle);
+            }
+
+            $this->session->destroy();
+            return redirect()->to(site_url('reparaciones/crear?msg=success'));
         }
 
         return view('welcome_message', $data);

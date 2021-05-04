@@ -1,8 +1,3 @@
-
-<?php 
-echo count($detalles);
-?>
-
 <style>
     .div-veh {
         display: flex;
@@ -24,10 +19,13 @@ echo count($detalles);
 
 <script>
     function loadPrice() {
-        const btnPrecio = document.getElementById('btnPrecio');
-        btnPrecio.click();
+        setTimeout(
+            () => {
+                const btnPrecio = document.getElementById('btnPrecio');
+                btnPrecio.click();
+            }, 1000
+        )
     }
-
 </script>
 
 <form method="POST" action='<?= base_url(); ?>/index.php/reparaciones/crear'>
@@ -38,11 +36,11 @@ echo count($detalles);
             <label for="exampleFormControlSelect1">Vehiculo:</label>
 
             <select class="form-control form-select" id="vehiculo" name="vehiculo">
-                <option <?php echo $vehiculoId=="" ? "selected" : "" ?>></option>
-                <?php 
-                    foreach ($vehiculos as $vehiculo) {
-                        echo "<option value=".$vehiculo['id']." ". ($vehiculo['id']== $vehiculoId ? "selected" : "") ." >".$vehiculo['placa']."</option>";
-                    }
+                <option <?php echo $vehiculoId == "" ? "selected" : "" ?>></option>
+                <?php
+                foreach ($vehiculos as $vehiculo) {
+                    echo "<option value=" . $vehiculo['id'] . " " . ($vehiculo['id'] == $vehiculoId ? "selected" : "") . " >" . $vehiculo['placa'] . "</option>";
+                }
                 ?>
             </select>
             <label for="">Fecha:</label>
@@ -55,11 +53,11 @@ echo count($detalles);
         <div class="div-veh">
             <label for="">Servicio:</label>
             <select class="form-control form-select" id="servicio" onchange="loadPrice()" name="servicio">
-                <option <?php echo $servicioId=="" ? "selected" : "" ?>></option>
-                <?php 
-                    foreach ($servicios as $servicio) {
-                        echo "<option value=".$servicio['id']." ". ($servicio['id']== $servicioId ? "selected" : "") ." >".$servicio['descripcion']."</option>";
-                    }
+                <option <?php echo $servicioId == "" ? "selected" : "" ?>></option>
+                <?php
+                foreach ($servicios as $servicio) {
+                    echo "<option value=" . $servicio['id'] . " " . ($servicio['id'] == $servicioId ? "selected" : "") . " >" . $servicio['descripcion'] . "</option>";
+                }
                 ?>
             </select>
             <input type="submit" value="Add" name="btnAdd" class="btn btn-primary" name="btnAdd" id="btnAdd">
@@ -67,7 +65,7 @@ echo count($detalles);
             <input type="number" class="form-control number" onchange="loadPrice()" name="cantidad" min="1" value='<?= $cantidad ? $cantidad : 1 ?>' max="100">
             <label> Precio:</label>
             <input type="text" disabled class="form-control" name="precio" value="<?= $precio ?>">
-            <input type="submit" value="btnPrecio" id="btnPrecio" name="btnPrecio" style="display: none;"/>
+            <input type="submit" value="btnPrecio" id="btnPrecio" name="btnPrecio" style="display: none;" />
         </div>
     </div>
 
@@ -85,25 +83,27 @@ echo count($detalles);
 
             <tbody>
 
-                <?php 
-                    foreach ($detalles as $detalle) {
-                        echo "
+                <?php
+                foreach ($detalles as $detalle) {
+                    echo "
                         <tr>
-                        <td>".$detalle['id']."</td>
-                        <td>".$detalle['servicio']."</td>
-                        <td>".$detalle['precio']."</td>
-                        <td>".$detalle['cantidad']."</td>
+                        <td>" . $detalle['id'] . "</td>
+                        <td>" . $detalle['servicio'] . "</td>
+                        <td>$" . $detalle['precio'] . "</td>
+                        <td>" . $detalle['cantidad'] . "</td>
                         </tr>
                         ";
-                    }
+                }
                 ?>
 
             </tbody>
         </table>
     </div>
-    <div class="div-veh">
+    <div style="display: flex; justify-content: flex-end;">
+    <div class="col-sm-4">
         <label> Costo:</label>
-        <input type="text" disabled class="form-control" value="<?= $total?>">
+        <input type="text" disabled class="form-control" value="<?= $total ?>">
+        </div>
     </div>
     <div class="div-veh">
 
@@ -111,3 +111,13 @@ echo count($detalles);
         <input type="submit" value="cancelar" name="btnCancelar" class="btn btn-danger">
     </div>
 </form>
+
+    <?php
+        if ($error != '') {
+            echo '<div class="alert alert-danger" role="alert">'.$error.'</div>';
+        }
+    if (isset($_GET['msg']) && $_GET['msg'] == 'success') {
+        echo '<div class="alert alert-success" role="alert">Guardado exitoso</div>';
+    }
+
+    ?>
