@@ -3,8 +3,8 @@ namespace App\Models;
 use CodeIgniter\Model;
 
 class ReparacionModel extends Model{
-    protected $table = 'vehiculos'; // tabla en BD
-    protected $allowedFields = ['id', 'placa', 'modelo','marca','capacidad', 'clientes_id', 'conductores_id', 'created','modified'];
+    protected $table = 'reparaciones'; // tabla en BD
+    protected $allowedFields = ['id', 'fecha', 'costo', 'observacion', 'created','modified', 'vehiculos_id'];
 
     public function getData($vehiculoId){
         return $this->db->table("reparaciones AS r")
@@ -22,6 +22,10 @@ class ReparacionModel extends Model{
         ->join('servicios as s', 'd.servicios_id = s.id ')
         ->where('d.reparaciones_id', $reparacionId)
         ->get()->getResultArray();
+    }
+
+    public function insertar($data){
+        return $this->insert($data);
     }
 }
 

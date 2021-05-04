@@ -107,7 +107,7 @@ echo count($detalles);
     </div>
     <div class="div-veh">
 
-        <input type="button" value="Enviar" class="btn btn-success">
+        <input type="submit" name="btnEnviar" value="Enviar" class="btn btn-success">
         <input type="submit" value="cancelar" name="btnCancelar" class="btn btn-danger">
     </div>
 </form>
