@@ -1,9 +1,13 @@
-<?php 
+<?php
+
 namespace App\Controllers;
+
 use App\Models\ReparacionModel;
 use App\Models\ClienteModel;
 use App\Models\VehiculoModel;
+use App\Models\ServicioModel;
 use PdfReparaciones;
+
 class Reparaciones extends BaseController
 {
     protected $modelReparacione;
@@ -12,32 +16,35 @@ class Reparaciones extends BaseController
 
     public function __construct()
     {
-        $this->modelReparacion = new ReparacionModel();//creo objeto modelo
-        $this ->modelCliente = new ClienteModel();
-        $this ->modelVehiculo = new VehiculoModel();
+        $this->modelReparacion = new ReparacionModel(); //creo objeto modelo
+        $this->modelCliente = new ClienteModel();
+        $this->modelVehiculo = new VehiculoModel();
+        $this->modelServicio = new ServicioModel();
+        $this->session = session();
     }
-	public function index()
-	{
+    
+    public function index()
+    {
         $data['clientes'] = $this->modelCliente->getData();
         $data['clienteId'] = isset($_GET['cliente']) ? $_GET['cliente'] : '';
         $data['vehiculos'] = !empty($data['clienteId']) ? $this->modelVehiculo->getVehiculosxCliente($data['clienteId']) : [];
         $data['titulo'] = '<center>Reparaciones</center>';
         $data['contenido'] = 'reparacion/index';
-		return view('welcome_message', $data);
-	}
+        return view('welcome_message', $data);
+    }
 
+    public function listapdf($id)
+    {
+        $pdf = new PdfReparaciones();
+        $pdf->SetMargins(PDF_MARGIN_LEFT, 30, PDF_MARGIN_RIGHT);
+        $pdf->Addpage();
+        $reparaciones = $this->modelReparacion->getData($id);
 
-public function listapdf($id){
-    $pdf= new PdfReparaciones();
-    $pdf->SetMargins(PDF_MARGIN_LEFT, 30, PDF_MARGIN_RIGHT);
-    $pdf->Addpage();
-    $reparaciones = $this->modelReparacion->getData($id);
-    
-    $i = 0;
-    do {
-        $reparacion = $reparaciones[$i];
-        $i++;
-        $html='
+        $i = 0;
+        do {
+            $reparacion = $reparaciones[$i];
+            $i++;
+            $html = '
         <style>
             td, th {
                 padding: 0px 10px;
@@ -50,13 +57,13 @@ public function listapdf($id){
                     Reparacion No
                 </td>
                 <td style="font-weight: bold;">
-                    '.$reparacion["id"].'
+                    ' . $reparacion["id"] . '
                 </td>
                 <td>
                     Fecha
                 </td>
                 <td>
-                    '.$reparacion["fecha"].'
+                    ' . $reparacion["fecha"] . '
                 </td>
             </tr>
             <tr>
@@ -64,7 +71,7 @@ public function listapdf($id){
                     Cliente
                 </td>
                 <td colspan="3" style="font-weight: bold;">
-                    '.$reparacion["nombre_cliente"].'
+                    ' . $reparacion["nombre_cliente"] . '
                 </td>
             </tr>
             <tr>
@@ -72,7 +79,7 @@ public function listapdf($id){
                     Conductor
                 </td>
                 <td colspan="3" style="font-weight: bold;font-weight: bold;">
-                    '.$reparacion["nombre_conductor"].'
+                    ' . $reparacion["nombre_conductor"] . '
                 </td>
             </tr>
             <tr>
@@ -80,7 +87,7 @@ public function listapdf($id){
                     Dirección cliente
                 </td>
                 <td colspan="3">
-                    '.$reparacion["direccion"].'
+                    ' . $reparacion["direccion"] . '
                 </td>
             </tr>
             <tr>
@@ -88,7 +95,7 @@ public function listapdf($id){
                     Teléfono
                 </td>
                 <td colspan="3">
-                    '.$reparacion["telefono"].'
+                    ' . $reparacion["telefono"] . '
                 </td>
             </tr>
             <tr>
@@ -96,13 +103,13 @@ public function listapdf($id){
                     Email            
                 </td>
                 <td colspan="3">
-                    '.$reparacion["correo"].'
+                    ' . $reparacion["correo"] . '
                 </td>
             </tr>
         </table>';
- 
 
-        $html = $html . '<table border="1">
+
+            $html = $html . '<table border="1">
             <thead>
                 <tr>
                     <td colspan="5" style="text-align: center; font-style: italic; font-weight: bold;">Detalles de la reparación</td>
@@ -125,17 +132,17 @@ public function listapdf($id){
 
                 $html = $html . '
                 <tr>
-                    <td>'.$detalle["id"].'</td>
-                    <td>'.$detalle["descripcion"].'</td>
-                    <td>'.(string)$detalle["precio"].'</td>
-                    <td>'.(string)$detalle["cantidad"].'</td>
-                    <td>'.(string)$detalle["costo"].'</td>
+                    <td>' . $detalle["id"] . '</td>
+                    <td>' . $detalle["descripcion"] . '</td>
+                    <td>' . (string)$detalle["precio"] . '</td>
+                    <td>' . (string)$detalle["cantidad"] . '</td>
+                    <td>' . (string)$detalle["costo"] . '</td>
                 </tr>
                 ';
             }
 
 
-        $html = $html . '
+            $html = $html . '
         <tr>
             <td></td>
             <td></td>
@@ -152,29 +159,34 @@ public function listapdf($id){
         </tr>
         </tbody>
         </table>';
-       
 
 
 
-        $html .= '<table>
+
+            $html .= '<table>
             <tr style="font-weight: bold;">
                 <td >TOTAL</td>
                 <td></td>
-                <td style="text-align: right;">$'.$total.'</td>
+                <td style="text-align: right;">$' . $total . '</td>
             </tr>
         </table>
         ';
-        $pdf->writeHTML($html, true,false,true,false,'');
-        //echo $i;
-        //echo count($reparaciones);
-        if ($i < (count($reparaciones))) {
-            $pdf->AddPage();
-        }
-    } while($i < count($reparaciones));
-   
-    $this->response->setHeader("Content-Type", "application/pdf");
-    $pdf->Output('Listado_vehiculos.pdf', 'I');
-    
-}
+            $pdf->writeHTML($html, true, false, true, false, '');
+            //echo $i;
+            //echo count($reparaciones);
+            if ($i < (count($reparaciones))) {
+                $pdf->AddPage();
+            }
+        } while ($i < count($reparaciones));
 
+        $this->response->setHeader("Content-Type", "application/pdf");
+        $pdf->Output('Listado_vehiculos.pdf', 'I');
+    }
+
+    public function crear()
+    {
+        $this->session->set('some_name', 'some_value');
+        $data["contenido"] = 'reparacion/crear';
+        return view('welcome_message', $data);
+    }
 }

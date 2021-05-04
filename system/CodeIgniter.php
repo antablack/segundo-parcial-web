@@ -477,11 +477,11 @@ class CodeIgniter
 			// running under Continuous Integration server?
 			if (getenv('CI') !== false)
 			{
-				define('ENVIRONMENT', 'testing');
+				define('ENVIRONMENT', 'development');
 			}
 			else
 			{
-				define('ENVIRONMENT', $_SERVER['CI_ENVIRONMENT'] ?? 'production');
+				define('ENVIRONMENT', $_SERVER['CI_ENVIRONMENT'] ?? 'development');
 			}
 		}
 	}
