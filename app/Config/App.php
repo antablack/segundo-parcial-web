@@ -21,7 +21,7 @@ class App extends BaseConfig
 	| environments.
 	|
 	*/
-	public $baseURL = 'http://localhost/segundo_parcial';
+	public $baseURL = 'http://localhost/segundo-parcial-web';
 
 	/*
 	|--------------------------------------------------------------------------
