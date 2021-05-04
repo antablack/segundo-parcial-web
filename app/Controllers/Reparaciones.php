@@ -22,7 +22,7 @@ class Reparaciones extends BaseController
         $this->modelServicio = new ServicioModel();
         $this->session = session();
     }
-    
+
     public function index()
     {
         $data['clientes'] = $this->modelCliente->getData();
@@ -186,6 +186,8 @@ class Reparaciones extends BaseController
     public function crear()
     {
         $this->session->set('some_name', 'some_value');
+        $data["vehiculos"] = $this->modelVehiculo->getData();
+        $data["servicios"] = $this->modelServicio->getData();
         $data["contenido"] = 'reparacion/crear';
         return view('welcome_message', $data);
     }
