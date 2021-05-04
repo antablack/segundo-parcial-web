@@ -6,6 +6,7 @@ use App\Models\ReparacionModel;
 use App\Models\ClienteModel;
 use App\Models\VehiculoModel;
 use App\Models\ServicioModel;
+use App\Models\DetalleModel;
 use PdfReparaciones;
 
 class Reparaciones extends BaseController
@@ -20,6 +21,7 @@ class Reparaciones extends BaseController
         $this->modelCliente = new ClienteModel();
         $this->modelVehiculo = new VehiculoModel();
         $this->modelServicio = new ServicioModel();
+        $this->modelDetalle = new DetalleModel();
         $this->session = session();
     }
 
@@ -185,12 +187,12 @@ class Reparaciones extends BaseController
 
     public function crear()
     {
-        $data["detalles"] = $this->session->get('detalle') ? $this->session->get('detalle') : [];
+        $detalles = $this->session->get('detalle') ? $this->session->get('detalle') : [];
         if ($this->request->getPost('btnCancelar') || $this->request->getPost('btnEnviar')) {
 
             if ($this->request->getPost('btnEnviar')) {
                 $total = 0;
-                foreach ($data["detalles"] as $detalle) {
+                foreach ($detalles as $detalle) {
                     $total += $detalle["precio"];
                 }
                 $data = [
@@ -199,18 +201,26 @@ class Reparaciones extends BaseController
                     "observacion" => $this->request->getPost('observacion'),
                     "vehiculos_id" => $this->request->getPost('vehiculo')
                 ];
-                $this->modelReparacion->insertar($data);
+                $reparacionId = $this->modelReparacion->insertar($data);
+                foreach ($detalles as $detalle) {
+                    $detalle = [
+                        "servicios_id" => $detalle['id'],
+                        "costo" => $detalle['precio'],
+                        "cantidad" => $detalle['cantidad'],
+                        "reparaciones_id" => $reparacionId
+                    ];
+                    $this->modelDetalle->insertar($detalle);
+                }
             }
 
             $this->session->destroy();
             return redirect()->to(site_url('reparaciones/crear'));
         }
 
-        $this->session->set('some_name', 'some_value');
+        $data["detalles"] = $detalles;
         $data["vehiculos"] = $this->modelVehiculo->getData();
         $data["servicios"] = $this->modelServicio->getData();
         $data["contenido"] = 'reparacion/crear';
-
         $data["vehiculoId"] = $this->request->getPost('vehiculo');
         $data["fecha"] = $this->request->getPost('fecha');
         $data["observacion"] = $this->request->getPost('observacion');

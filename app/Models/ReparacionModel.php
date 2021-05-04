@@ -25,7 +25,8 @@ class ReparacionModel extends Model{
     }
 
     public function insertar($data){
-        return $this->insert($data);
+        $this->insert($data);
+        return $this->insertID();;
     }
 }
 
